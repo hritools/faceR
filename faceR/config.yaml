@@ -1,0 +1,95 @@
+camera:
+  provider: opencv # type: {text-stream, opencv}
+  framerate: 10
+  # the rest of 'camera' settings are used if provider is text-stream
+  width: 800
+  height: 600
+  video device: 0
+  receiver:
+    port: '5555'
+    ip: '10.42.0.233'
+
+recognition:
+  face alignment:
+    # {mtcnn, dlib, opencv, face-boxes, adas}
+    provider: face-boxes
+
+    # entries specific to mtcnn
+    mtcnn:
+      model folder: models/mtcnn
+      minsize: 15
+      threshold: [0.6, 0.7, 0.9]
+      factor: 0.709
+    # entries specific to opencv
+    opencv:
+      cascade path: models/haarcascade_frontalface_default.xml
+      scale factor: 1.2
+      min neighbors: 5
+      min width: 15
+      min height: 20
+    face-boxes:
+      model: models/face_boxes/model.pb
+    adas:
+      # openvino only, thus we can choose device
+      # {myriad, cpu, gpu, hetero}
+      device: cpu
+      width: 672
+      height: 384
+      threshold: 0.6
+      myriad:
+        model: models/adas/FP16/face-detection-adas-0001
+      hetero:
+        model: models/adas/FP32/face-detection-adas-0001
+        extension library: /opt/intel/computer_vision_sdk/deployment_tools/inference_engine/lib/ubuntu_18.04/intel64/libHeteroPlugin.so
+      cpu:
+        model: models/adas/FP32/face-detection-adas-0001
+        extension library: /opt/intel/computer_vision_sdk/deployment_tools/inference_engine/lib/ubuntu_18.04/intel64/libcpu_extension_avx2.so
+
+  embedding:
+    # {tf, openvino}
+    framework: tf
+    provider: facenet
+
+    tf:
+      # uses CUDA gpu automatically by default
+      facenet:
+        model: models/facenet/TF/20180402-114759.pb
+        image size: 160
+    openvino:
+      # make sure to have installed necessary dependencies
+      # {myriad, cpu, gpu, hetero}
+      device: myriad
+      facenet:
+        image size: 160
+        myriad:
+#          model: models/facenet/openVINO/FP16/20180402-114759
+          model: models/facenet/openVINO/FP16/20180402-114759
+        gpu:
+          model: models/facenet/openVINO/FP16/20180402-114759
+        hetero:
+          model: models/facenet/openVINO/FP32/20180402-114759
+        cpu:
+          model: models/facenet/openVINO/FP32/20180402-114759
+          extension library: /opt/intel/computer_vision_sdk/deployment_tools/inference_engine/lib/ubuntu_18.04/intel64/libcpu_extension_avx2.so
+
+  classification:
+    # {test-classifier, svm-classifier}
+    provider: test-classifier
+    test-classifier conf:
+      model: models/classifier/aligned_raw.pkl
+      threshold: 0.35
+#      model: models/classifier/test_classifier.pkl
+#      threshold: 0.4
+    svm-classifier conf:
+      model: models/classifier/staff_svm.pkl
+      threshold: 0.8
+
+  tracking:
+    provider: dlib
+    frames: 1
+    dlib conf:
+      multiprocessing: False
+      processes: 4
+
+display:
+  provider: opencv

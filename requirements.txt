@@ -1,0 +1,10 @@
+PyYAML
+pyzmq
+numpy
+tensorflow
+scipy
+scikit-learn
+opencv-python
+imageio
+Pillow
+dlib
